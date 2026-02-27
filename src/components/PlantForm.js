@@ -1,5 +1,23 @@
 import React, { useState } from "react";
-import { toBase64 } from "../utils";
+
+// Comprime la imagen a maxWidth px y calidad 0-1
+function compressImage(file, maxWidth = 800, quality = 0.75) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxWidth / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.src = url;
+  });
+}
 
 export default function PlantForm({ plant, onSave, onCancel }) {
   const isEdit = !!plant;
@@ -14,11 +32,11 @@ export default function PlantForm({ plant, onSave, onCancel }) {
   const handlePhoto = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors(v => ({ ...v, photo: "La foto debe pesar menos de 5MB" }));
+    if (file.size > 20 * 1024 * 1024) {
+      setErrors(v => ({ ...v, photo: "La foto debe pesar menos de 20MB" }));
       return;
     }
-    const b64 = await toBase64(file);
+    const b64 = await compressImage(file, 800, 0.75);
     setPhoto(b64);
     setPhotoPreview(b64);
     setErrors(v => ({ ...v, photo: null }));
@@ -106,7 +124,7 @@ export default function PlantForm({ plant, onSave, onCancel }) {
                   Click para añadir una foto
                 </div>
                 <div style={{ color: "var(--text-light)", fontSize: "0.8rem", marginTop: 4 }}>
-                  JPG, PNG (máx. 5MB)
+                  JPG, PNG — se comprime automáticamente
                 </div>
               </div>
             )}
@@ -138,7 +156,6 @@ export default function PlantForm({ plant, onSave, onCancel }) {
         <div>
           <label style={labelStyle}>¿Cada cuántos días regarla? *</label>
 
-          {/* Presets */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
             {presets.map(p => (
               <button
