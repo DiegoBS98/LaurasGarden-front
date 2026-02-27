@@ -8,7 +8,9 @@ export default function Header({ onHome, onAdd, showBack }) {
       position: "sticky",
       top: 0,
       zIndex: 100,
-      boxShadow: "0 2px 12px rgba(26,58,26,0.06)"
+      boxShadow: "0 2px 12px rgba(26,58,26,0.06)",
+      paddingTop: "env(safe-area-inset-top)"
+
     }}>
       <div style={{
         maxWidth: 900,
