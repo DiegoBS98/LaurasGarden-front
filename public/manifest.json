@@ -1,0 +1,40 @@
+{
+  "short_name": "Laura's Garden",
+  "name": "Laura's Garden",
+  "description": "Gestiona el riego de tus plantas",
+  "icons": [
+    {
+      "src": "favicon-16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#2d5a27",
+  "background_color": "#f5f0e8",
+  "categories": ["lifestyle", "utilities"]
+}
