@@ -40,7 +40,7 @@ export function wateringStatus(plant) {
   if (!hasReference) return "never";
   const days = daysUntilWatering(plant);
   if (days < 0) return "overdue";
-  if (days <= 1) return "today";
+  if (days === 0) return "today";
   if (days <= 3) return "soon";
   return "ok";
 }
@@ -86,11 +86,11 @@ export function formatDateShort(date) {
 
 export function formatRelative(days) {
   if (days < 0) {
-    const d = Math.abs(Math.floor(days));
+    const d = Math.ceil(Math.abs(days));
     return d === 1 ? "Hace 1 día" : `Hace ${d} días`;
   }
-  if (days < 1) return "¡Hoy!";
-  const d = Math.floor(days);
+  if (days === 0) return "¡Hoy!";
+  const d = Math.round(days);
   if (d === 1) return "Mañana";
   return `En ${d} días`;
 }

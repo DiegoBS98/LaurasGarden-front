@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { wateringStatus, daysUntilWatering, formatRelative, formatDate, formatDateShort, nextWateringDate, needsFertilizer, lastFertilizedDate } from "../utils";
 import WaterModal from "./WaterModal";
 
@@ -82,33 +83,40 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
     setConfirmDeletePhoto(false);
   };
 
-
+  // Determine if current swiper photo is deletable and what type
+  const currentSwiperPhoto = swiperPhotos[photoIndex];
+  const currentIsMainPhoto = currentSwiperPhoto?.label === "Planta";
+  const currentMainPhotoIndex = currentIsMainPhoto
+    ? mainPhotos.indexOf(mainPhotos.find(p => p === currentSwiperPhoto?.src))
+    : -1;
+  const currentIsFloweringPhoto = currentSwiperPhoto?.label === "🌸 Floración";
+  const currentIsDeletable = currentIsMainPhoto || currentIsFloweringPhoto;
 
   return (
     <div style={{ paddingTop: 24 }} className="fade-in">
       {showWaterModal && (
         <WaterModal plant={plant} onConfirm={handleWater} onCancel={() => setShowWaterModal(false)} />
       )}
-      {/* Lock body scroll when lightbox open */}
+      {/* Lightbox via portal — renders outside page DOM so no scroll issues */}
       {selectedPhoto && <ScrollLock />}
-      {selectedPhoto && (
+      {selectedPhoto && createPortal(
         <div style={{
-          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
           background: "rgba(0,0,0,0.92)",
           display: "flex", flexDirection: "column", alignItems: "center",
           justifyContent: "center", zIndex: 9999, padding: 20, gap: 12,
-          overflowY: "auto"
         }} onClick={() => { setSelectedPhoto(null); setConfirmDeletePhoto(false); }}>
           <img src={selectedPhoto.src} alt="" style={{
-            maxWidth: "95vw", maxHeight: "80vh", borderRadius: 12, objectFit: "contain"
+            maxWidth: "95vw", maxHeight: "70vh", borderRadius: 12, objectFit: "contain",
+            flexShrink: 0
           }} />
-          <div style={{ color: "white", fontSize: "0.85rem", opacity: 0.7, textAlign: "center" }}>
+          <div style={{ color: "white", fontSize: "0.85rem", opacity: 0.7, textAlign: "center", flexShrink: 0 }}>
             <span>{selectedPhoto.label}</span>
             {selectedPhoto.date && <span> · {formatDate(selectedPhoto.date)}</span>}
           </div>
           {/* Delete button — only for main and flowering photos */}
           {(selectedPhoto.label === "Planta" || selectedPhoto.label === "🌸 Floración") && (
-            <div onClick={e => e.stopPropagation()}>
+            <div onClick={e => e.stopPropagation()} style={{ flexShrink: 0 }}>
               {confirmDeletePhoto ? (
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <span style={{ color: "white", fontSize: "0.85rem" }}>¿Eliminar foto?</span>
@@ -141,8 +149,9 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
               )}
             </div>
           )}
-          <div style={{ color: "white", fontSize: "0.75rem", opacity: 0.4 }}>Toca fuera para cerrar</div>
-        </div>
+          <div style={{ color: "white", fontSize: "0.75rem", opacity: 0.4, flexShrink: 0 }}>Toca fuera para cerrar</div>
+        </div>,
+        document.body
       )}
 
       <button className="btn btn-ghost" onClick={onBack}
