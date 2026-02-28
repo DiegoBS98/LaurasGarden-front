@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 const MIN_SIZE = 80;
 
@@ -215,11 +216,12 @@ export default function ImageCropper({ src, onCrop, onCancel }) {
     return "nesw-resize";
   };
 
-  return (
+  return createPortal(
     <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)",
+      position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+      background: "rgba(0,0,0,0.9)",
       display: "flex", flexDirection: "column", alignItems: "center",
-      justifyContent: "center", zIndex: 1000, gap: 16, padding: 24
+      justifyContent: "center", zIndex: 9999, gap: 16, padding: 24
     }}>
       <div style={{ color: "white", fontFamily: "DM Sans", fontSize: "0.85rem", opacity: 0.8, textAlign: "center" }}>
         Arrastra las esquinas para recortar libremente · Arrastra dentro para mover
@@ -262,6 +264,7 @@ export default function ImageCropper({ src, onCrop, onCancel }) {
           fontFamily: "DM Sans", fontWeight: 600, cursor: "pointer"
         }}>✓ Recortar</button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

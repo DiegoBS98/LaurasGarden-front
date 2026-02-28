@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { wateringStatus, daysUntilWatering, formatRelative, lastWateredDate, formatDate, needsFertilizer } from "../utils";
 
 const STATUS_CONFIG = {
-  overdue: { label: "Regar ya", icon: "💧", color: "#c0392b", bg: "#fdf0ee", aura: "rgba(192,57,43,0.18)", aura2: "rgba(192,57,43,0.06)" },
-  today:   { label: "¡Hoy!",    icon: "💧", color: "#d4830a", bg: "#fef9ed", aura: "rgba(212,131,10,0.18)",  aura2: "rgba(212,131,10,0.06)" },
-  soon:    { label: "Pronto",   icon: "🌱", color: "#b07d00", bg: "#fff8e1", aura: "rgba(176,125,0,0.14)",   aura2: "rgba(176,125,0,0.04)" },
-  ok:      { label: "Al día",   icon: "✓",  color: "#2d7a3f", bg: "#eef7f0", aura: "rgba(45,122,63,0.15)",   aura2: "rgba(45,122,63,0.04)" },
-  never:   { label: "Sin regar",icon: "🌵", color: "#888",    bg: "#f0f0f0", aura: "rgba(192,57,43,0.12)",   aura2: "rgba(192,57,43,0.03)" },
+  overdue: { label: "Regar ya", icon: "💧", color: "#c0392b", bg: "#fdf0ee", aura: "rgba(192,57,43,0.55)", aura2: "rgba(192,57,43,0.15)" },
+  today:   { label: "¡Hoy!",    icon: "💧", color: "#d4830a", bg: "#fef9ed", aura: "rgba(212,131,10,0.50)", aura2: "rgba(212,131,10,0.14)" },
+  soon:    { label: "Pronto",   icon: "🌱", color: "#b07d00", bg: "#fff8e1", aura: "rgba(176,125,0,0.40)",  aura2: "rgba(176,125,0,0.10)" },
+  ok:      { label: "Al día",   icon: "✓",  color: "#2d7a3f", bg: "#eef7f0", aura: "rgba(45,122,63,0.40)",  aura2: "rgba(45,122,63,0.10)" },
+  never:   { label: "Sin regar",icon: "🌵", color: "#888",    bg: "#f0f0f0", aura: "rgba(192,57,43,0.35)",  aura2: "rgba(192,57,43,0.08)" },
 };
 
 const STATUS_ORDER = { overdue: 0, never: 1, today: 2, soon: 3, ok: 4 };
