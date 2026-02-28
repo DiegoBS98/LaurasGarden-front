@@ -22,6 +22,12 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
 
   const sortedLog = [...(plant.watering_log || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
   const mainPhotos = plant.photos?.length > 0 ? plant.photos : (plant.photo ? [plant.photo] : []);
+  // All photos for the swiper (main + flowering + watering)
+  const swiperPhotos = [
+    ...mainPhotos.map(p => ({ src: p, label: "Planta" })),
+    ...(plant.flowering_photo ? [{ src: plant.flowering_photo, label: "🌸 Floración" }] : []),
+    ...sortedLog.flatMap(e => (e.photos || []).map(p => ({ src: p, label: `💧 ${formatDate(e.date)}` }))),
+  ];
 
   // All photos: main + flowering + watering log photos
   const allGalleryPhotos = [
@@ -99,12 +105,12 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
               <div
                 style={{ position: "relative", borderRadius: 20, overflow: "hidden",
                   height: 280, marginBottom: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-                  cursor: mainPhotos.length > 1 ? "grab" : "pointer", userSelect: "none" }}
+                  cursor: swiperPhotos.length > 1 ? "grab" : "pointer", userSelect: "none" }}
                 onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
                 onTouchEnd={e => {
                   if (touchStartX.current === null) return;
                   const dx = e.changedTouches[0].clientX - touchStartX.current;
-                  if (dx < -40 && photoIndex < mainPhotos.length - 1) setPhotoIndex(i => i + 1);
+                  if (dx < -40 && photoIndex < swiperPhotos.length - 1) setPhotoIndex(i => i + 1);
                   if (dx > 40 && photoIndex > 0) setPhotoIndex(i => i - 1);
                   touchStartX.current = null;
                 }}
@@ -113,7 +119,7 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                   if (touchStartX.current === null) return;
                   const dx = e.clientX - touchStartX.current;
                   if (Math.abs(dx) < 5) {
-                    setSelectedPhoto({ src: mainPhotos[photoIndex], label: "Planta" });
+                    setSelectedPhoto(swiperPhotos[photoIndex]);
                   } else {
                     if (dx < -40 && photoIndex < mainPhotos.length - 1) setPhotoIndex(i => i + 1);
                     if (dx > 40 && photoIndex > 0) setPhotoIndex(i => i - 1);
@@ -122,13 +128,13 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                 }}
               >
                 <img
-                  src={mainPhotos[photoIndex]}
+                  src={swiperPhotos[photoIndex]?.src}
                   alt={plant.name}
                   style={{ width: "100%", height: "100%", objectFit: "cover",
                     transition: "opacity 0.2s ease", display: "block" }}
                 />
                 {/* Prev/Next arrows */}
-                {photoIndex > 0 && (
+                {swiperPhotos.length > 1 && photoIndex > 0 && (
                   <button onClick={e => { e.stopPropagation(); setPhotoIndex(i => i - 1); }} style={{
                     position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
                     background: "rgba(255,255,255,0.85)", border: "none", borderRadius: "50%",
@@ -137,7 +143,7 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                     boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
                   }}>‹</button>
                 )}
-                {photoIndex < mainPhotos.length - 1 && (
+                {swiperPhotos.length > 1 && photoIndex < swiperPhotos.length - 1 && (
                   <button onClick={e => { e.stopPropagation(); setPhotoIndex(i => i + 1); }} style={{
                     position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
                     background: "rgba(255,255,255,0.85)", border: "none", borderRadius: "50%",
@@ -146,13 +152,24 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                     boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
                   }}>›</button>
                 )}
+                {/* Current photo label */}
+                {swiperPhotos.length > 1 && swiperPhotos[photoIndex]?.label && (
+                  <div style={{
+                    position: "absolute", top: 10, left: 10,
+                    background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)",
+                    color: "white", borderRadius: 100, padding: "3px 10px",
+                    fontSize: "0.72rem", fontWeight: 500
+                  }}>
+                    {swiperPhotos[photoIndex].label}
+                  </div>
+                )}
                 {/* Dot indicators */}
-                {mainPhotos.length > 1 && (
+                {swiperPhotos.length > 1 && (
                   <div style={{
                     position: "absolute", bottom: 10, left: 0, right: 0,
                     display: "flex", justifyContent: "center", gap: 6
                   }}>
-                    {mainPhotos.map((_, i) => (
+                    {swiperPhotos.map((_, i) => (
                       <div key={i} onClick={e => { e.stopPropagation(); setPhotoIndex(i); }} style={{
                         width: i === photoIndex ? 20 : 6, height: 6,
                         borderRadius: 3, cursor: "pointer",
@@ -164,10 +181,10 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                 )}
               </div>
               {/* Thumbnail strip */}
-              {mainPhotos.length > 1 && (
+              {swiperPhotos.length > 1 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "nowrap", overflowX: "auto", paddingBottom: 4 }}>
-                  {mainPhotos.map((p, i) => (
-                    <img key={i} src={p} alt="" onClick={() => setPhotoIndex(i)} style={{
+                  {swiperPhotos.map((photo, i) => (
+                    <img key={i} src={photo.src} alt={photo.label} title={photo.label} onClick={() => setPhotoIndex(i)} style={{
                       width: 52, height: 52, objectFit: "cover", borderRadius: 8,
                       cursor: "pointer", flexShrink: 0,
                       border: i === photoIndex ? "2px solid var(--green-mid)" : "2px solid var(--cream-dark)",
