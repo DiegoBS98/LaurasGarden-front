@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { wateringStatus, daysUntilWatering, formatRelative, formatDate, formatDateShort, nextWateringDate, needsFertilizer, lastFertilizedDate } from "../utils";
 import WaterModal from "./WaterModal";
 
@@ -82,18 +82,29 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
     setConfirmDeletePhoto(false);
   };
 
-
+  // Determine if current swiper photo is deletable and what type
+  const currentSwiperPhoto = swiperPhotos[photoIndex];
+  const currentIsMainPhoto = currentSwiperPhoto?.label === "Planta";
+  const currentMainPhotoIndex = currentIsMainPhoto
+    ? mainPhotos.indexOf(mainPhotos.find(p => p === currentSwiperPhoto?.src))
+    : -1;
+  const currentIsFloweringPhoto = currentSwiperPhoto?.label === "🌸 Floración";
+  const currentIsDeletable = currentIsMainPhoto || currentIsFloweringPhoto;
 
   return (
     <div style={{ paddingTop: 24 }} className="fade-in">
       {showWaterModal && (
         <WaterModal plant={plant} onConfirm={handleWater} onCancel={() => setShowWaterModal(false)} />
       )}
+      {/* Lock body scroll when lightbox open */}
+      {selectedPhoto && <ScrollLock />}
       {selectedPhoto && (
         <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)",
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.92)",
           display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", zIndex: 1000, padding: 20, gap: 12
+          justifyContent: "center", zIndex: 9999, padding: 20, gap: 12,
+          overflowY: "auto"
         }} onClick={() => { setSelectedPhoto(null); setConfirmDeletePhoto(false); }}>
           <img src={selectedPhoto.src} alt="" style={{
             maxWidth: "95vw", maxHeight: "80vh", borderRadius: 12, objectFit: "contain"
@@ -568,6 +579,15 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
       `}</style>
     </div>
   );
+}
+
+function ScrollLock() {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+  return null;
 }
 
 function InfoRow({ icon, label, value }) {

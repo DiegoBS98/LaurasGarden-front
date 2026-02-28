@@ -1,15 +1,17 @@
 export function daysUntilWatering(plant) {
   const log = plant.watering_log || [];
-  // Use override date if no log entries
   const lastDateStr = log.length > 0
     ? [...log].sort((a, b) => new Date(b.date) - new Date(a.date))[0].date
     : plant.last_watered_override || null;
 
   if (!lastDateStr) return 0;
 
-  const lastDate = new Date(lastDateStr);
+  // Compare by calendar date (ignore time) so watering today always counts as day 0
+  const last = new Date(lastDateStr);
+  const lastDay = new Date(last.getFullYear(), last.getMonth(), last.getDate());
   const now = new Date();
-  const daysSinceLast = (now - lastDate) / (1000 * 60 * 60 * 24);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const daysSinceLast = (today - lastDay) / (1000 * 60 * 60 * 24);
   return plant.watering_interval_days - daysSinceLast;
 }
 
