@@ -82,6 +82,10 @@ export default function App() {
               await api.deleteWateringEntry(selectedPlant.id, entryId);
               await loadPlants();
             }}
+            onUpdate={async (data) => {
+              await api.updatePlant(selectedPlant.id, data);
+              await loadPlants();
+            }}
           />
         )}
         {view === "add" && (
