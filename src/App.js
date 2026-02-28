@@ -86,6 +86,10 @@ export default function App() {
               await api.updatePlant(selectedPlant.id, data);
               await loadPlants();
             }}
+            onUpdateWatering={async (entryId, data) => {
+              await api.updateWateringEntry(selectedPlant.id, entryId, data);
+              await loadPlants();
+            }}
           />
         )}
         {view === "add" && (

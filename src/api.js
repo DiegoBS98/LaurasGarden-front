@@ -18,4 +18,6 @@ export const api = {
   waterPlant: (id, data = {}) => req(`/api/plants/${id}/water`, { method: "POST", body: JSON.stringify(data) }),
   deleteWateringEntry: (plantId, entryId) =>
     req(`/api/plants/${plantId}/water/${entryId}`, { method: "DELETE" }),
+  updateWateringEntry: (plantId, entryId, data) =>
+    req(`/api/plants/${plantId}/water/${entryId}`, { method: "PUT", body: JSON.stringify(data) }),
 };

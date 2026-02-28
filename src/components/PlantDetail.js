@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { wateringStatus, daysUntilWatering, formatRelative, formatDate, formatDateShort, nextWateringDate, needsFertilizer, lastFertilizedDate } from "../utils";
 import WaterModal from "./WaterModal";
 
-export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, onDeleteWatering, onUpdate }) {
+export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, onDeleteWatering, onUpdate, onUpdateWatering }) {
   const [showWaterModal, setShowWaterModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -10,6 +10,7 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
   const [savingFlowering, setSavingFlowering] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
   const touchStartX = useRef(null);
+  const [confirmDeletePhoto, setConfirmDeletePhoto] = useState(false);
 
   const status = wateringStatus(plant);
   const days = daysUntilWatering(plant);
@@ -21,6 +22,7 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
   const hasFlowered = plant.flowering_start && plant.flowering_end;
 
   const sortedLog = [...(plant.watering_log || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const fertLog = sortedLog.filter(e => e.fertilized);
   const mainPhotos = plant.photos?.length > 0 ? plant.photos : (plant.photo ? [plant.photo] : []);
   // All photos for the swiper (main + flowering + watering)
   const swiperPhotos = [
@@ -68,6 +70,27 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
     setSavingFlowering(false);
   };
 
+  const handleDeleteMainPhoto = async (indexToDelete) => {
+    const newPhotos = mainPhotos.filter((_, i) => i !== indexToDelete);
+    await onUpdate({ photos: newPhotos });
+    setPhotoIndex(Math.max(0, photoIndex - 1));
+    setConfirmDeletePhoto(false);
+  };
+
+  const handleDeleteFloweringPhoto = async () => {
+    await onUpdate({ flowering_photo: "" });
+    setConfirmDeletePhoto(false);
+  };
+
+  // Determine if current swiper photo is deletable and what type
+  const currentSwiperPhoto = swiperPhotos[photoIndex];
+  const currentIsMainPhoto = currentSwiperPhoto?.label === "Planta";
+  const currentMainPhotoIndex = currentIsMainPhoto
+    ? mainPhotos.indexOf(mainPhotos.find(p => p === currentSwiperPhoto?.src))
+    : -1;
+  const currentIsFloweringPhoto = currentSwiperPhoto?.label === "🌸 Floración";
+  const currentIsDeletable = currentIsMainPhoto || currentIsFloweringPhoto;
+
   return (
     <div style={{ paddingTop: 24 }} className="fade-in">
       {showWaterModal && (
@@ -78,7 +101,7 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)",
           display: "flex", flexDirection: "column", alignItems: "center",
           justifyContent: "center", zIndex: 1000, padding: 20, gap: 12
-        }} onClick={() => setSelectedPhoto(null)}>
+        }} onClick={() => { setSelectedPhoto(null); setConfirmDeletePhoto(false); }}>
           <img src={selectedPhoto.src} alt="" style={{
             maxWidth: "95vw", maxHeight: "80vh", borderRadius: 12, objectFit: "contain"
           }} />
@@ -86,7 +109,42 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
             <span>{selectedPhoto.label}</span>
             {selectedPhoto.date && <span> · {formatDate(selectedPhoto.date)}</span>}
           </div>
-          <div style={{ color: "white", fontSize: "0.75rem", opacity: 0.4 }}>Toca para cerrar</div>
+          {/* Delete button — only for main and flowering photos */}
+          {(selectedPhoto.label === "Planta" || selectedPhoto.label === "🌸 Floración") && (
+            <div onClick={e => e.stopPropagation()}>
+              {confirmDeletePhoto ? (
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <span style={{ color: "white", fontSize: "0.85rem" }}>¿Eliminar foto?</span>
+                  <button onClick={async () => {
+                    if (selectedPhoto.label === "🌸 Floración") {
+                      await handleDeleteFloweringPhoto();
+                    } else {
+                      const idx = mainPhotos.findIndex(p => p === selectedPhoto.src);
+                      await handleDeleteMainPhoto(idx);
+                    }
+                    setSelectedPhoto(null);
+                  }} style={{
+                    padding: "6px 16px", borderRadius: 100, border: "none",
+                    background: "#e74c3c", color: "white", fontFamily: "DM Sans",
+                    fontWeight: 600, cursor: "pointer", fontSize: "0.85rem"
+                  }}>Eliminar</button>
+                  <button onClick={() => setConfirmDeletePhoto(false)} style={{
+                    padding: "6px 16px", borderRadius: 100,
+                    border: "1.5px solid rgba(255,255,255,0.4)", background: "transparent",
+                    color: "white", fontFamily: "DM Sans", cursor: "pointer", fontSize: "0.85rem"
+                  }}>Cancelar</button>
+                </div>
+              ) : (
+                <button onClick={() => setConfirmDeletePhoto(true)} style={{
+                  padding: "7px 18px", borderRadius: 100,
+                  border: "1.5px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)",
+                  color: "white", fontFamily: "DM Sans", cursor: "pointer", fontSize: "0.85rem",
+                  backdropFilter: "blur(4px)"
+                }}>🗑️ Eliminar foto</button>
+              )}
+            </div>
+          )}
+          <div style={{ color: "white", fontSize: "0.75rem", opacity: 0.4 }}>Toca fuera para cerrar</div>
         </div>
       )}
 
@@ -332,11 +390,12 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
           )}
 
           {/* Tab bar */}
-          <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "var(--cream)", borderRadius: 10, padding: 4 }}>
+          <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "var(--cream)", borderRadius: 10, padding: 4, flexWrap: "wrap" }}>
             {[
               { key: "info", label: "ℹ️ Info" },
-              { key: "gallery", label: `🖼️ Galería (${allGalleryPhotos.length})` },
-              { key: "log", label: `💧 Riegos (${sortedLog.length})` },
+              { key: "gallery", label: `🖼️ (${allGalleryPhotos.length})` },
+              { key: "log", label: `💧 (${sortedLog.length})` },
+              { key: "fertilizer", label: `🌿 (${fertLog.length})` },
             ].map(t => (
               <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
                 flex: 1, padding: "7px 4px", borderRadius: 8, border: "none",
@@ -374,7 +433,7 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
                   {allGalleryPhotos.map((photo, i) => (
                     <div key={i} style={{ position: "relative", aspectRatio: "1", cursor: "pointer" }}
-                      onClick={() => setSelectedPhoto(photo)}>
+                      onClick={() => { setSelectedPhoto(photo); setConfirmDeletePhoto(false); }}>
                       <img src={photo.src} alt="" style={{
                         width: "100%", height: "100%", objectFit: "cover", borderRadius: 8
                       }} />
@@ -403,12 +462,12 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                   borderBottom: i < sortedLog.length - 1 ? "1px solid var(--cream-dark)" : "none",
                 }}>
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
                       <span style={{
                         width: 8, height: 8, borderRadius: "50%", flexShrink: 0, marginTop: 6,
                         background: i === 0 ? "#4a90d9" : "var(--green-pale)"
                       }} />
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>{formatDate(entry.date)}</span>
                           {entry.fertilized && (
@@ -419,11 +478,23 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                         </div>
                         {entry.note && <div style={{ fontSize: "0.78rem", color: "var(--text-light)" }}>{entry.note}</div>}
                         {entry.photos?.length > 0 && (
-                          <div style={{ display: "flex", gap: 5, marginTop: 5 }}>
+                          <div style={{ display: "flex", gap: 5, marginTop: 5, flexWrap: "wrap" }}>
                             {entry.photos.map((p, j) => (
-                              <img key={j} src={p} alt="" onClick={() => setSelectedPhoto({ src: p, label: "💧 Riego", date: entry.date })} style={{
-                                width: 44, height: 44, objectFit: "cover", borderRadius: 6, cursor: "pointer"
-                              }} />
+                              <div key={j} style={{ position: "relative" }}>
+                                <img src={p} alt="" onClick={() => setSelectedPhoto({ src: p, label: "💧 Riego", date: entry.date })} style={{
+                                  width: 44, height: 44, objectFit: "cover", borderRadius: 6, cursor: "pointer", display: "block"
+                                }} />
+                                <button onClick={async () => {
+                                  const newPhotos = entry.photos.filter((_, k) => k !== j);
+                                  await onUpdateWatering(entry.id, { photos: newPhotos });
+                                }} style={{
+                                  position: "absolute", top: -5, right: -5, width: 16, height: 16,
+                                  borderRadius: "50%", background: "#c0392b", color: "white",
+                                  border: "none", fontSize: "0.55rem", cursor: "pointer",
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  lineHeight: 1
+                                }}>✕</button>
+                              </div>
                             ))}
                           </div>
                         )}
@@ -433,6 +504,51 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                       background: "none", border: "none", color: "var(--text-light)",
                       cursor: "pointer", fontSize: "0.85rem", padding: "2px 6px", flexShrink: 0
                     }}>✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tab: Fertilizer log */}
+          {activeTab === "fertilizer" && (
+            <div style={{ maxHeight: 400, overflowY: "auto" }}>
+              {plant.fertilizer_every_n_waterings > 0 ? (
+                <div style={{
+                  background: "var(--cream)", borderRadius: 10, padding: "10px 14px", marginBottom: 14,
+                  fontSize: "0.82rem", color: "var(--text-mid)"
+                }}>
+                  Frecuencia configurada: cada <strong>{plant.fertilizer_every_n_waterings} riegos</strong>
+                </div>
+              ) : (
+                <div style={{
+                  background: "#fff8e1", borderRadius: 10, padding: "10px 14px", marginBottom: 14,
+                  fontSize: "0.82rem", color: "#b07d00"
+                }}>
+                  Sin frecuencia configurada — edita la planta para activarlo
+                </div>
+              )}
+              {fertLog.length === 0 ? (
+                <p style={{ color: "var(--text-light)", fontSize: "0.9rem" }}>Todavía no se ha abonado.</p>
+              ) : fertLog.map((entry, i) => (
+                <div key={entry.id} style={{
+                  padding: "10px 0",
+                  borderBottom: i < fertLog.length - 1 ? "1px solid var(--cream-dark)" : "none",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{
+                      width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
+                      background: i === 0 ? "#f0c040" : "#e8d5a3"
+                    }} />
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>{formatDate(entry.date)}</span>
+                        <span style={{ fontSize: "0.72rem", background: "#fff8e1", color: "#b07d00", padding: "1px 7px", borderRadius: 100, fontWeight: 600 }}>
+                          🌿 Abonada
+                        </span>
+                      </div>
+                      {entry.note && <div style={{ fontSize: "0.78rem", color: "var(--text-light)" }}>{entry.note}</div>}
+                    </div>
                   </div>
                 </div>
               ))}
