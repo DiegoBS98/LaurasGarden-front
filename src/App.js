@@ -8,7 +8,7 @@ import Header from "./components/Header";
 import InstallBanner from "./components/InstallBanner";
 
 export default function App() {
-  const [view, setView] = useState("dashboard"); // dashboard | detail | add | edit
+  const [view, setView] = useState("dashboard");
   const [plants, setPlants] = useState([]);
   const [selectedPlant, setSelectedPlant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,6 @@ export default function App() {
 
   useEffect(() => { loadPlants(); }, []);
 
-  // Refresh selected plant when plants list changes
   useEffect(() => {
     if (selectedPlant) {
       const updated = plants.find(p => p.id === selectedPlant.id);
@@ -46,18 +45,11 @@ export default function App() {
 
   return (
     <div style={{ minHeight: "100vh" }}>
-      <Header
-        onHome={() => navigate("dashboard")}
-        onAdd={() => navigate("add")}
-        showBack={view !== "dashboard"}
-      />
+      <Header onHome={() => navigate("dashboard")} onAdd={() => navigate("add")} />
       <InstallBanner />
       <main style={{ maxWidth: 900, margin: "0 auto", padding: "0 16px 80px" }}>
         {error && (
-          <div style={{
-            background: "#fdf0ee", color: "#c0392b", padding: "12px 20px",
-            borderRadius: 12, margin: "20px 0", fontSize: "0.9rem"
-          }}>
+          <div style={{ background: "#fdf0ee", color: "#c0392b", padding: "12px 20px", borderRadius: 12, margin: "20px 0", fontSize: "0.9rem" }}>
             ⚠️ {error}
           </div>
         )}
@@ -67,7 +59,7 @@ export default function App() {
             onSelectPlant={(p) => navigate("detail", p)}
             onAdd={() => navigate("add")}
             onWater={async (plantId) => {
-              await api.waterPlant(plantId);
+              await api.waterPlant(plantId, {});
               await loadPlants();
             }}
           />
@@ -82,8 +74,8 @@ export default function App() {
               await loadPlants();
               navigate("dashboard");
             }}
-            onWater={async () => {
-              await api.waterPlant(selectedPlant.id);
+            onWater={async (data) => {
+              await api.waterPlant(selectedPlant.id, data);
               await loadPlants();
             }}
             onDeleteWatering={async (entryId) => {
@@ -94,11 +86,7 @@ export default function App() {
         )}
         {view === "add" && (
           <PlantForm
-            onSave={async (data) => {
-              await api.createPlant(data);
-              await loadPlants();
-              navigate("dashboard");
-            }}
+            onSave={async (data) => { await api.createPlant(data); await loadPlants(); navigate("dashboard"); }}
             onCancel={() => navigate("dashboard")}
           />
         )}
@@ -120,11 +108,7 @@ export default function App() {
 
 function LoadingScreen() {
   return (
-    <div style={{
-      minHeight: "100vh", display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center", gap: 16,
-      background: "var(--cream)"
-    }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, background: "var(--cream)" }}>
       <div style={{ fontSize: 48, animation: "pulse 1.5s ease infinite" }}>🌿</div>
       <p style={{ color: "var(--text-light)", fontFamily: "DM Sans" }}>Cargando tus plantas...</p>
     </div>
