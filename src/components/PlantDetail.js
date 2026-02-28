@@ -82,14 +82,7 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
     setConfirmDeletePhoto(false);
   };
 
-  // Determine if current swiper photo is deletable and what type
-  const currentSwiperPhoto = swiperPhotos[photoIndex];
-  const currentIsMainPhoto = currentSwiperPhoto?.label === "Planta";
-  const currentMainPhotoIndex = currentIsMainPhoto
-    ? mainPhotos.indexOf(mainPhotos.find(p => p === currentSwiperPhoto?.src))
-    : -1;
-  const currentIsFloweringPhoto = currentSwiperPhoto?.label === "🌸 Floración";
-  const currentIsDeletable = currentIsMainPhoto || currentIsFloweringPhoto;
+
 
   return (
     <div style={{ paddingTop: 24 }} className="fade-in">
