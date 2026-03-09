@@ -36,11 +36,11 @@ export default function WaterModal({ plant, onConfirm, onCancel }) {
     <div style={{
       position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
       background: "rgba(0,0,0,0.5)",
-      display: "flex", alignItems: "flex-end", justifyContent: "center",
+      display: "flex", alignItems: "center", justifyContent: "center",
       zIndex: 9999, padding: 16
     }} onClick={onCancel}>
       <div style={{
-        background: "white", borderRadius: "20px 20px 16px 16px",
+        background: "white", borderRadius: 20,
         width: "100%", maxWidth: 480, padding: 24,
         animation: "fadeIn 0.25s ease"
       }} onClick={e => e.stopPropagation()}>
