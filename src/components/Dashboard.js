@@ -34,13 +34,18 @@ export default function Dashboard({ plants, onSelectPlant, onAdd, onWater }) {
     setWateringPlant(plant);
   };
 
-  const handleWaterConfirm = async (data) => {
-    await onWater(wateringPlant.id, data);
-    setWateringPlant(null);
-  };
-
   return (
     <div style={{ paddingTop: 32 }}>
+      {wateringPlant && (
+        <WaterModal
+          plant={wateringPlant}
+          onConfirm={async (data) => {
+            await onWater(wateringPlant.id, data);
+            setWateringPlant(null);
+          }}
+          onCancel={() => setWateringPlant(null)}
+        />
+      )}
       {needWater.length > 0 && (
         <div className="fade-in" style={{
           background: "linear-gradient(135deg, var(--green-mid), var(--green-deep))",
