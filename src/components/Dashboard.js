@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import WaterModal from "./WaterModal";
 import { wateringStatus, daysUntilWatering, formatRelative, lastWateredDate, formatDate, needsFertilizer } from "../utils";
 
 const STATUS_CONFIG = {
@@ -12,7 +13,7 @@ const STATUS_CONFIG = {
 const STATUS_ORDER = { overdue: 0, never: 1, today: 2, soon: 3, ok: 4 };
 
 export default function Dashboard({ plants, onSelectPlant, onAdd, onWater }) {
-  const [watering, setWatering] = useState(null);
+  const [wateringPlant, setWateringPlant] = useState(null); // plant object for modal
   const [filter, setFilter] = useState("all");
 
   const needWater = plants.filter(p => {
@@ -28,10 +29,14 @@ export default function Dashboard({ plants, onSelectPlant, onAdd, onWater }) {
     : filter === "needs" ? sorted.filter(p => { const s = wateringStatus(p); return s === "overdue" || s === "today" || s === "never"; })
     : sorted.filter(p => wateringStatus(p) === filter);
 
-  const handleWater = async (e, plantId) => {
+  const handleWaterClick = (e, plant) => {
     e.stopPropagation();
-    setWatering(plantId);
-    try { await onWater(plantId); } finally { setWatering(null); }
+    setWateringPlant(plant);
+  };
+
+  const handleWaterConfirm = async (data) => {
+    await onWater(wateringPlant.id, data);
+    setWateringPlant(null);
   };
 
   return (
@@ -77,8 +82,7 @@ export default function Dashboard({ plants, onSelectPlant, onAdd, onWater }) {
               <PlantCard
                 key={plant.id} plant={plant} index={i}
                 onClick={() => onSelectPlant(plant)}
-                onWater={(e) => handleWater(e, plant.id)}
-                isWatering={watering === plant.id}
+                onWater={(e) => handleWaterClick(e, plant)}
               />
             ))}
           </div>
@@ -88,7 +92,7 @@ export default function Dashboard({ plants, onSelectPlant, onAdd, onWater }) {
   );
 }
 
-function PlantCard({ plant, index, onClick, onWater, isWatering }) {
+function PlantCard({ plant, index, onClick, onWater }) {
   const status = wateringStatus(plant);
   const days = daysUntilWatering(plant);
   const cfg = STATUS_CONFIG[status];
@@ -182,10 +186,8 @@ function PlantCard({ plant, index, onClick, onWater, isWatering }) {
           <button
             className="btn"
             onClick={onWater}
-            disabled={isWatering}
             style={{
               padding: "7px 14px", fontSize: "0.82rem",
-              opacity: isWatering ? 0.7 : 1,
               background: needsWater
                 ? "linear-gradient(135deg, #e74c3c, #c0392b)"
                 : "linear-gradient(135deg, #4a90d9, #2d6fb5)",
@@ -193,7 +195,7 @@ function PlantCard({ plant, index, onClick, onWater, isWatering }) {
               boxShadow: needsWater ? "0 3px 12px rgba(231,76,60,0.35)" : "0 3px 12px rgba(74,144,217,0.25)"
             }}
           >
-            {isWatering ? "..." : "💧 Regar"}
+            💧 Regar
           </button>
         </div>
       </div>

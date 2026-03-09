@@ -58,8 +58,8 @@ export default function App() {
             plants={plants}
             onSelectPlant={(p) => navigate("detail", p)}
             onAdd={() => navigate("add")}
-            onWater={async (plantId) => {
-              await api.waterPlant(plantId, {});
+            onWater={async (plantId, data = {}) => {
+              await api.waterPlant(plantId, data);
               await loadPlants();
             }}
           />
