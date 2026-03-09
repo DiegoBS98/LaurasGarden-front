@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { needsFertilizer, compressImage } from "../utils";
 
 /**
@@ -24,11 +25,19 @@ export default function WaterModal({ plant, onConfirm, onCancel }) {
     setSaving(false);
   };
 
-  return (
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  return createPortal(
     <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+      position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+      background: "rgba(0,0,0,0.5)",
       display: "flex", alignItems: "flex-end", justifyContent: "center",
-      zIndex: 500, padding: 16
+      zIndex: 9999, padding: 16
     }} onClick={onCancel}>
       <div style={{
         background: "white", borderRadius: "20px 20px 16px 16px",
@@ -133,6 +142,7 @@ export default function WaterModal({ plant, onConfirm, onCancel }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -83,7 +83,14 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
     setConfirmDeletePhoto(false);
   };
 
-  
+  // Determine if current swiper photo is deletable and what type
+  const currentSwiperPhoto = swiperPhotos[photoIndex];
+  const currentIsMainPhoto = currentSwiperPhoto?.label === "Planta";
+  const currentMainPhotoIndex = currentIsMainPhoto
+    ? mainPhotos.indexOf(mainPhotos.find(p => p === currentSwiperPhoto?.src))
+    : -1;
+  const currentIsFloweringPhoto = currentSwiperPhoto?.label === "🌸 Floración";
+  const currentIsDeletable = currentIsMainPhoto || currentIsFloweringPhoto;
 
   return (
     <div style={{ paddingTop: 24 }} className="fade-in">
@@ -350,12 +357,17 @@ export default function PlantDetail({ plant, onBack, onEdit, onDelete, onWater, 
                     onClick={() => setSelectedPhoto({ src: plant.flowering_photo, label: "🌸 Floración", date: plant.flowering_start })}
                     style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8, cursor: "pointer", marginBottom: 8, border: "2px solid #f8bbd0" }} />
                 )}
-                <div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button onClick={handleStartFlowering} disabled={savingFlowering} style={{
                     padding: "5px 12px", borderRadius: 100, border: "1.5px solid #ce93d8",
                     background: "transparent", color: "#7b1fa2", fontFamily: "DM Sans",
                     fontSize: "0.78rem", cursor: "pointer"
                   }}>🌸 Nueva floración</button>
+                  <button onClick={handleClearFlowering} disabled={savingFlowering} style={{
+                    padding: "5px 12px", borderRadius: 100, border: "1.5px solid #e0d0e8",
+                    background: "transparent", color: "#aaa", fontFamily: "DM Sans",
+                    fontSize: "0.78rem", cursor: "pointer"
+                  }}>🗑️ Eliminar floración</button>
                 </div>
               </div>
             )}

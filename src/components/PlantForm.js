@@ -209,13 +209,29 @@ export default function PlantForm({ plant, onSave, onCancel }) {
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
             <div style={{ flex: 1, minWidth: 140 }}>
               <div style={{ fontSize: "0.75rem", color: "var(--text-light)", marginBottom: 4 }}>Inicio</div>
-              <input type="date" value={floweringStart} onChange={e => setFloweringStart(e.target.value)}
-                style={inputStyle(false)} />
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <input type="date" value={floweringStart} onChange={e => setFloweringStart(e.target.value)}
+                  style={{ ...inputStyle(false), flex: 1 }} />
+                {floweringStart && (
+                  <button type="button" onClick={() => { setFloweringStart(""); setFloweringEnd(""); setFloweringPhoto(""); }}
+                    style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "#e8e0d8", color: "var(--text-light)", cursor: "pointer", fontSize: "0.8rem", flexShrink: 0 }}>
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
             <div style={{ flex: 1, minWidth: 140 }}>
               <div style={{ fontSize: "0.75rem", color: "var(--text-light)", marginBottom: 4 }}>Fin</div>
-              <input type="date" value={floweringEnd} onChange={e => setFloweringEnd(e.target.value)}
-                style={inputStyle(false)} />
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <input type="date" value={floweringEnd} onChange={e => setFloweringEnd(e.target.value)}
+                  style={{ ...inputStyle(false), flex: 1 }} />
+                {floweringEnd && (
+                  <button type="button" onClick={() => setFloweringEnd("")}
+                    style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "#e8e0d8", color: "var(--text-light)", cursor: "pointer", fontSize: "0.8rem", flexShrink: 0 }}>
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           {/* Flowering photo */}
